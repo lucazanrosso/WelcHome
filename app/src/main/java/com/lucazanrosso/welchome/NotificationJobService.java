@@ -1,10 +1,12 @@
 package com.lucazanrosso.welchome;
 
-import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 import com.firebase.jobdispatcher.JobParameters;
 import com.firebase.jobdispatcher.JobService;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -14,45 +16,30 @@ import com.google.firebase.database.ValueEventListener;
 public class NotificationJobService extends JobService{
 
     SharedPreferences sharedPreferences;
-    boolean alarmIsWorking;
+    boolean alarmIsSet;
     boolean thiefIsEntered;
     int verificationCode = -1;
+
+    FirebaseUser user;
 
     @Override
     public boolean onStartJob(JobParameters job) {
 
-        sharedPreferences = getSharedPreferences("PREFERENCES", Context.MODE_PRIVATE);
-        this.alarmIsWorking = sharedPreferences.getBoolean("alarmIsWorking", false);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        this.alarmIsSet = sharedPreferences.getBoolean("alarmIsSet", false);
         this.thiefIsEntered = sharedPreferences.getBoolean("thiefIsEntered", false);
 
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-        mDatabase.child("alarm_is_working").setValue(true);
+        user = FirebaseAuth.getInstance().getCurrentUser();
+        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child(user.getUid());
 
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                boolean alarmIsWorkingDB = dataSnapshot.child("alarm_is_working").getValue(Boolean.class);
+                boolean alarmIsSetDB = dataSnapshot.child("alarm_is_set").getValue(Boolean.class);
                 boolean thiefIsEnteredDB = dataSnapshot.child("thief_is_entered").getValue(Boolean.class);
-                int verificationCodeDB = dataSnapshot.child("alarm_is_working").getValue(Integer.class);
-                if (alarmIsWorking != alarmIsWorkingDB) {
-                    if (alarmIsWorkingDB) {
+                int verificationCodeDB = dataSnapshot.child("verification_code").getValue(Integer.class);
+                sharedPreferences.edit().putBoolean("alarmIsSet", alarmIsSetDB).apply();
 
-                    } else {
-
-                    }
-                    sharedPreferences.edit().putBoolean("alarmIsWorking", alarmIsWorkingDB).apply();
-                }
-                if (thiefIsEntered != thiefIsEnteredDB) {
-                    if (thiefIsEnteredDB) {
-
-                    } else {
-
-                    }
-                    sharedPreferences.edit().putBoolean("thiefIsEntered", alarmIsWorkingDB).apply();
-                }
-                if (verificationCode == verificationCodeDB) {
-
-                }
             }
 
             @Override
