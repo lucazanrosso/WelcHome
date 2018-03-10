@@ -3,4 +3,9 @@
     <string name="sign_out">Sign out</string>
     <string name="delete_account">Delete account</string>
     <string name="image_description">null</string>
+
+    <!--<string name="thief_is_entered_title">Alarm!</string>-->
+    <!--<string name="thief_is_entered_text">A thief entered in your home</string>-->
+    <!--<string name="nodeMCU_problems_title">Attention!</string>-->
+    <!--<string name="nodeMCU_problems_text">There are some problems with your nodeMCU</string>-->
 </resources>

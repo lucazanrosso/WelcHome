@@ -83,16 +83,18 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                         mDatabase.child("alarm_is_set").setValue(b);
                         sharedPreferences.edit().putBoolean("alarmIsSet", b).apply();
-                    }
+                        if (!b) {
+                            mDatabase.child("thief_is_entered").setValue(false);
+                            sharedPreferences.edit().putBoolean("thiefIsEntered", false).apply();
+                        }
+                   }
                 });
 
-                dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
                 if (!sharedPreferences.getBoolean("isSignedIn",false)) {
-
                     mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
-                            if (!dataSnapshot.hasChild(user.getUid())) {
+                            if (!dataSnapshot.hasChild("alarm_is_set")) {
                                 mDatabase.child("alarm_is_set").setValue(false);
                                 mDatabase.child("thief_is_entered").setValue(false);
                                 mDatabase.child("verification_code").setValue(0);
@@ -104,6 +106,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
                         }
                     });
+
+                    dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
                     Job myJob = dispatcher.newJobBuilder()
                             .setService(NotificationJobService.class) // the JobService that will be called
                             .setTag("my-unique-tag")        // uniquely identifies the job
