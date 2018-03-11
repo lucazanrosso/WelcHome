@@ -39,8 +39,10 @@ public class NotificationJobService extends JobService{
 
             @Override
             public void onFinish() {
-                setNotfication("Attention!", "There are some problems with your nodeMCU");
+                setNotification("Attention!", "There are some problems with your nodeMCU");
                 sharedPreferences.edit().putBoolean("nodeMCUProblems", true).apply();
+                sharedPreferences.edit().putString("colorSelected", "yellow").apply();
+                sharedPreferences.edit().putString("textSelected", context.getResources().getString(R.string.nodeMCU_problems)).apply();
             }
         }.start();
 
@@ -59,26 +61,32 @@ public class NotificationJobService extends JobService{
                 int verificationCodeDB = dataSnapshot.child("verification_code").getValue(Integer.class);
                 if (alarmIsSetDB) {
                     if (thiefIsEnteredDB && !thiefIsEntered) {
-                        setNotfication("Alarm!", "A thief entered in your home");
+                        setNotification("Alarm!", "A thief entered in your home");
                         sharedPreferences.edit().putBoolean("thiefIsEntered", true).apply();
-                        countDownTimer.start();
+                        sharedPreferences.edit().putString("colorSelected", "red").apply();
+                        sharedPreferences.edit().putString("textSelected", context.getResources().getString(R.string.thief_is_entered)).apply();
                     } else if (verificationCode != verificationCodeDB) {
                         countDownTimer.start();
+                        if (sharedPreferences.getString("colorSelected", "yellow").equals("yellow")) {
+                            sharedPreferences.edit().putString("colorSelected", "green").apply();
+                            sharedPreferences.edit().putString("textSelected", context.getResources().getString(R.string.its_all_ok)).apply();
+                        }
                         if (sharedPreferences.getBoolean("nodeMCUProblems", false)) {
                             sharedPreferences.edit().putBoolean("nodeMCUProblems", false).apply();
-//
-//                            setNotfication("Attention!", "There are some problems with your nodeMCU");
-//                            sharedPreferences.edit().putBoolean("nodeMCUProblems", true).apply();
-////                        }
-//                    } else {
-//                        if (sharedPreferences.getBoolean("nodeMCUProblems", false)) {
-//                            sharedPreferences.edit().putBoolean("nodeMCUProblems", false).apply();
-//                        }
-//                        contdown = 3;
                         }
                     }
-                    verificationCode = verificationCodeDB;
+                    if (!sharedPreferences.getBoolean("alarmIsSet", false))
+                        sharedPreferences.edit().putBoolean("alarmIsSet", true).apply();
+                } else {
+                    if (verificationCodeDB != -1) {
+                        countDownTimer.cancel();
+                        setNotification("Attention!", " Someone has deactivated the alarm");
+                        sharedPreferences.edit().putBoolean("alarmIsSer", false).apply();
+                        sharedPreferences.edit().putString("colorSelected", "yellow").apply();
+                        sharedPreferences.edit().putString("textSelected", context.getResources().getString(R.string.alarm_deactivated)).apply();
+                    }
                 }
+                verificationCode = verificationCodeDB;
             }
 
             @Override
@@ -92,7 +100,7 @@ public class NotificationJobService extends JobService{
         return true; // Answers the question: "Is there still work going on?"
     }
 
-    public void setNotfication(String title, String text) {
+    public void setNotification(String title, String text) {
         Intent notificationIntent = new Intent(context, MyNotification.class);
         notificationIntent.putExtra("notification_title", title);
         notificationIntent.putExtra("notification_text", text);

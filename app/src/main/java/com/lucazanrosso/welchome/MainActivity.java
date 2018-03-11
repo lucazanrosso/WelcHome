@@ -4,8 +4,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.AppCompatImageView;
+import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.SwitchCompat;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,6 +35,8 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements SharedPreferences.OnSharedPreferenceChangeListener{
 
     SwitchCompat alarmSwitch;
+    AppCompatImageView imageView;
+    AppCompatTextView textView;
     SharedPreferences sharedPreferences;
     DatabaseReference mDatabase;
     FirebaseUser user;
@@ -83,12 +88,21 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
                         mDatabase.child("alarm_is_set").setValue(b);
                         sharedPreferences.edit().putBoolean("alarmIsSet", b).apply();
-                        if (!b) {
+                        sharedPreferences.edit().putString("colorSelected", "yellow").apply();
+                        if (b) {
+                            sharedPreferences.edit().putString("textSelected", getResources().getString(R.string.waiting_nodeMCU)).apply();
+                        } else {
                             mDatabase.child("thief_is_entered").setValue(false);
                             sharedPreferences.edit().putBoolean("thiefIsEntered", false).apply();
+                            sharedPreferences.edit().putString("textSelected", getResources().getString(R.string.alarm_deactivated)).apply();
                         }
                    }
                 });
+
+                imageView = findViewById(R.id.alarm_image);
+                textView = findViewById(R.id.alarm_text);
+                setColor(sharedPreferences.getString("colorSelected", "yellow"));
+                textView.setText(sharedPreferences.getString("textSelected", getResources().getString(R.string.alarm_deactivated)));
 
                 if (!sharedPreferences.getBoolean("isSignedIn",false)) {
                     mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -121,6 +135,21 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 // Sign in failed, check response for error code
                 Toast.makeText(this,"Sign in failed", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+
+    public void setColor(String color) {
+        switch (color) {
+            case "green":
+                imageView.setColorFilter(ContextCompat.getColor(this, R.color.green));
+                break;
+            case "yellow":
+                System.out.println("yellow");
+                imageView.setColorFilter(ContextCompat.getColor(this, R.color.yellow));
+                break;
+            case "red":
+                imageView.setColorFilter(ContextCompat.getColor(this, R.color.red));
+                break;
         }
     }
 
@@ -165,8 +194,16 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if (key.equals("alarmIsSet")) {
-            alarmSwitch.setChecked(sharedPreferences.getBoolean(key,false));
+        switch (key) {
+            case "alarmIsSet":
+                alarmSwitch.setChecked(sharedPreferences.getBoolean(key,false));
+                break;
+            case "colorSelected":
+                setColor(sharedPreferences.getString(key, "yellow"));
+                break;
+            case "textSelected":
+                textView.setText(sharedPreferences.getString(key, ""));
+                break;
         }
     }
 
