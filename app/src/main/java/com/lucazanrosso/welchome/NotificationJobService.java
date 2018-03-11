@@ -31,7 +31,7 @@ public class NotificationJobService extends JobService{
     public boolean onStartJob(JobParameters job) {
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        countDownTimer = new CountDownTimer(60000, 5000) {
+        countDownTimer = new CountDownTimer(10000, 5000) {
             @Override
             public void onTick(long l) {
                 System.out.println(l/1000);
@@ -44,7 +44,7 @@ public class NotificationJobService extends JobService{
                 sharedPreferences.edit().putString("colorSelected", "yellow").apply();
                 sharedPreferences.edit().putString("textSelected", context.getResources().getString(R.string.nodeMCU_problems)).apply();
             }
-        }.start();
+        };
 
         context = getApplicationContext();
 
@@ -75,8 +75,11 @@ public class NotificationJobService extends JobService{
                             sharedPreferences.edit().putBoolean("nodeMCUProblems", false).apply();
                         }
                     }
-                    if (!sharedPreferences.getBoolean("alarmIsSet", false))
+                    if (!sharedPreferences.getBoolean("alarmIsSet", false)) {
                         sharedPreferences.edit().putBoolean("alarmIsSet", true).apply();
+                        countDownTimer.start();
+                    }
+                    verificationCode = verificationCodeDB;
                 } else {
                     if (verificationCodeDB != -1) {
                         countDownTimer.cancel();
@@ -84,9 +87,9 @@ public class NotificationJobService extends JobService{
                         sharedPreferences.edit().putBoolean("alarmIsSer", false).apply();
                         sharedPreferences.edit().putString("colorSelected", "yellow").apply();
                         sharedPreferences.edit().putString("textSelected", context.getResources().getString(R.string.alarm_deactivated)).apply();
+                        verificationCode = -1;
                     }
                 }
-                verificationCode = verificationCodeDB;
             }
 
             @Override
