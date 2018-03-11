@@ -121,7 +121,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         textView.setText(sharedPreferences.getString("textSelected", getResources().getString(R.string.alarm_deactivated)));
 
         dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
-        if (!sharedPreferences.getBoolean("isNewAccount", false)) {
+        if (!sharedPreferences.getBoolean("justSignedIn", false)) {
             mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     .setTag("my-unique-tag")        // uniquely identifies the job
                     .build();
             dispatcher.mustSchedule(myJob);
-            sharedPreferences.edit().putBoolean("isNewAccount", true).apply();
+            sharedPreferences.edit().putBoolean("justSignedIn", true).apply();
         }
     }
 
@@ -176,6 +176,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         // as you specify a parent activity in AndroidManifest.xml.
         dispatcher.cancel("my-unique-tag");
         sharedPreferences.edit().putBoolean("isSignedIn", false).apply();
+        sharedPreferences.edit().putBoolean("justSignedIn", false).apply();
         setSignInButtons();
         int id = item.getItemId();
         if (id == R.id.action_sign_out) {

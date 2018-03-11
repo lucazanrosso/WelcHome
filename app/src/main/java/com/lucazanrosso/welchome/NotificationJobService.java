@@ -66,7 +66,6 @@ public class NotificationJobService extends JobService{
                         sharedPreferences.edit().putString("colorSelected", "red").apply();
                         sharedPreferences.edit().putString("textSelected", context.getResources().getString(R.string.thief_is_entered)).apply();
                     } else if (verificationCode != verificationCodeDB) {
-                        countDownTimer.start();
                         if (sharedPreferences.getString("colorSelected", "yellow").equals("yellow")) {
                             sharedPreferences.edit().putString("colorSelected", "green").apply();
                             sharedPreferences.edit().putString("textSelected", context.getResources().getString(R.string.its_all_ok)).apply();
@@ -75,10 +74,9 @@ public class NotificationJobService extends JobService{
                             sharedPreferences.edit().putBoolean("nodeMCUProblems", false).apply();
                         }
                     }
-                    if (!sharedPreferences.getBoolean("alarmIsSet", false)) {
+                    if (!sharedPreferences.getBoolean("alarmIsSet", false))
                         sharedPreferences.edit().putBoolean("alarmIsSet", true).apply();
-                        countDownTimer.start();
-                    }
+                    countDownTimer.start();
                     verificationCode = verificationCodeDB;
                 } else {
                     if (verificationCodeDB != -1) {
@@ -87,7 +85,6 @@ public class NotificationJobService extends JobService{
                         sharedPreferences.edit().putBoolean("alarmIsSer", false).apply();
                         sharedPreferences.edit().putString("colorSelected", "yellow").apply();
                         sharedPreferences.edit().putString("textSelected", context.getResources().getString(R.string.alarm_deactivated)).apply();
-                        verificationCode = -1;
                     }
                 }
             }
