@@ -23,7 +23,7 @@ public class MyNotification extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         this.notificationTitle = intent.getStringExtra("notification_title");
         this.notificationText = intent.getStringExtra("notification_text");
-        this.notificationIcon = R.drawable.ic_launcher_background;
+        this.notificationIcon = R.drawable.ic_stat_logo;
 
         NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(context, "1")
                 .setSmallIcon(this.notificationIcon)

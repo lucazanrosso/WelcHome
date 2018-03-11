@@ -57,13 +57,20 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 new AuthUI.IdpConfig.PhoneBuilder().build(),
                 new AuthUI.IdpConfig.GoogleBuilder().build());
 
-        // Create and launch sign-in intent
-        startActivityForResult(
-                AuthUI.getInstance()
-                        .createSignInIntentBuilder()
-                        .setAvailableProviders(providers)
-                        .build(),
-                RC_SIGN_IN);
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.registerOnSharedPreferenceChangeListener(this);
+
+        if (sharedPreferences.getBoolean("isSignedIn", false)) {
+            setLayout();
+        } else {
+            // Create and launch sign-in intent
+            startActivityForResult(
+                    AuthUI.getInstance()
+                            .createSignInIntentBuilder()
+                            .setAvailableProviders(providers)
+                            .build(),
+                    RC_SIGN_IN);
+        }
     }
 
     @Override
@@ -73,68 +80,70 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         if (requestCode == RC_SIGN_IN) {
             if (resultCode == RESULT_OK) {
                 // Successfully signed in
-                setContentView(R.layout.activity_main);
-
-                sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-                sharedPreferences.registerOnSharedPreferenceChangeListener(this);
-
-                user = FirebaseAuth.getInstance().getCurrentUser();
-                mDatabase = FirebaseDatabase.getInstance().getReference().child(user.getUid());
-
-                alarmSwitch = findViewById(R.id.alarm_switch);
-                alarmSwitch.setChecked(sharedPreferences.getBoolean("alarmIsSet", false));
-                alarmSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                        mDatabase.child("alarm_is_set").setValue(b);
-                        sharedPreferences.edit().putBoolean("alarmIsSet", b).apply();
-                        sharedPreferences.edit().putString("colorSelected", "yellow").apply();
-                        if (b) {
-                            sharedPreferences.edit().putString("textSelected", getResources().getString(R.string.waiting_nodeMCU)).apply();
-                        } else {
-                            mDatabase.child("thief_is_entered").setValue(false);
-                            sharedPreferences.edit().putBoolean("thiefIsEntered", false).apply();
-                            sharedPreferences.edit().putString("textSelected", getResources().getString(R.string.alarm_deactivated)).apply();
-                        }
-                   }
-                });
-
-                imageView = findViewById(R.id.alarm_image);
-                textView = findViewById(R.id.alarm_text);
-                setColor(sharedPreferences.getString("colorSelected", "yellow"));
-                textView.setText(sharedPreferences.getString("textSelected", getResources().getString(R.string.alarm_deactivated)));
-
-                if (!sharedPreferences.getBoolean("isSignedIn",false)) {
-                    mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            if (!dataSnapshot.hasChild("alarm_is_set")) {
-                                mDatabase.child("alarm_is_set").setValue(false);
-                                mDatabase.child("thief_is_entered").setValue(false);
-                                mDatabase.child("verification_code").setValue(0);
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-
-                    dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
-                    Job myJob = dispatcher.newJobBuilder()
-                            .setService(NotificationJobService.class) // the JobService that will be called
-                            .setTag("my-unique-tag")        // uniquely identifies the job
-                            .build();
-                    dispatcher.mustSchedule(myJob);
-                    sharedPreferences.edit().putBoolean("isSignedIn", true).apply();
-                }
+                sharedPreferences.edit().putBoolean("isSignedIn", true).apply();
+                setLayout();
             } else if (resultCode == RESULT_CANCELED) {
                 finishAffinity();
             } else {
                 // Sign in failed, check response for error code
                 Toast.makeText(this,"Sign in failed", Toast.LENGTH_SHORT).show();
             }
+        }
+    }
+
+    public void setLayout() {
+        setContentView(R.layout.activity_main);
+
+        user = FirebaseAuth.getInstance().getCurrentUser();
+        mDatabase = FirebaseDatabase.getInstance().getReference().child(user.getUid());
+
+        alarmSwitch = findViewById(R.id.alarm_switch);
+        alarmSwitch.setChecked(sharedPreferences.getBoolean("alarmIsSet", false));
+        alarmSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                mDatabase.child("alarm_is_set").setValue(b);
+                sharedPreferences.edit().putBoolean("alarmIsSet", b).apply();
+                sharedPreferences.edit().putString("colorSelected", "yellow").apply();
+                if (b) {
+                    sharedPreferences.edit().putString("textSelected", getResources().getString(R.string.waiting_nodeMCU)).apply();
+                } else {
+                    mDatabase.child("thief_is_entered").setValue(false);
+                    sharedPreferences.edit().putBoolean("thiefIsEntered", false).apply();
+                    sharedPreferences.edit().putString("textSelected", getResources().getString(R.string.alarm_deactivated)).apply();
+                }
+            }
+        });
+
+        imageView = findViewById(R.id.alarm_image);
+        textView = findViewById(R.id.alarm_text);
+        setColor(sharedPreferences.getString("colorSelected", "yellow"));
+        textView.setText(sharedPreferences.getString("textSelected", getResources().getString(R.string.alarm_deactivated)));
+
+        dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
+        if (!sharedPreferences.getBoolean("isNewAccount", false)) {
+            mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (!dataSnapshot.hasChild("alarm_is_set")) {
+                        mDatabase.child("alarm_is_set").setValue(false);
+                        mDatabase.child("thief_is_entered").setValue(false);
+                        mDatabase.child("verification_code").setValue(0);
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
+            Job myJob = dispatcher.newJobBuilder()
+                    .setService(NotificationJobService.class) // the JobService that will be called
+                    .setTag("my-unique-tag")        // uniquely identifies the job
+                    .build();
+            dispatcher.mustSchedule(myJob);
+            sharedPreferences.edit().putBoolean("isNewAccount", true).apply();
         }
     }
 
