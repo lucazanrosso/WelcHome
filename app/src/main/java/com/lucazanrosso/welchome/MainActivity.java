@@ -122,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
         dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(this));
         if (!sharedPreferences.getBoolean("justSignedIn", false)) {
+            sharedPreferences.edit().putBoolean("justSignedIn", true).apply();
             mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
@@ -143,7 +144,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                     .setTag("my-unique-tag")        // uniquely identifies the job
                     .build();
             dispatcher.mustSchedule(myJob);
-            sharedPreferences.edit().putBoolean("justSignedIn", true).apply();
         }
     }
 

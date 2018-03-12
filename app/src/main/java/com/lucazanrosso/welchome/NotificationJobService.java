@@ -34,7 +34,7 @@ public class NotificationJobService extends JobService{
         countDownTimer = new CountDownTimer(10000, 5000) {
             @Override
             public void onTick(long l) {
-                System.out.println(l/1000);
+//                System.out.println(l/1000);
             }
 
             @Override
@@ -69,10 +69,10 @@ public class NotificationJobService extends JobService{
                 boolean thiefIsEnteredDB = dataSnapshot.child("thief_is_entered").getValue(Boolean.class);
                 int verificationCodeDB = dataSnapshot.child("verification_code").getValue(Integer.class);
 
-                System.out.println(alarmIsSetDB);
-                System.out.println(thiefIsEnteredDB);
-                System.out.println(verificationCodeDB);
-                System.out.println(verificationCode);
+//                System.out.println(alarmIsSetDB);
+//                System.out.println(thiefIsEnteredDB);
+//                System.out.println(verificationCodeDB);
+//                System.out.println(verificationCode);
 
                 if (alarmIsSetDB) {
                     if (thiefIsEnteredDB && !sharedPreferences.getBoolean("thiefIsEntered", false)) {
@@ -104,7 +104,7 @@ public class NotificationJobService extends JobService{
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
-
+                countDownTimer.cancel();
             }
         });
 

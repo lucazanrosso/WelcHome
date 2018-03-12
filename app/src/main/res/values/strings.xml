@@ -9,7 +9,7 @@
     <string name="its_all_ok">The alarm is working correclty</string>
     <string name="alarm_deactivated">Attention! The alarm is deactivated</string>
     <string name="waiting_nodeMCU">Waiting nodeMCU response</string>
-    <string name="nodeMCU_problems">Attention! There seems to be some problem with your nodeMCU</string>
+    <string name="nodeMCU_problems">Attention! There are some problem with your nodeMCU</string>
     <string name="thief_is_entered">Alarm! A thief entered in your home!</string>
 
     <!--<string name="thief_is_entered_title">Alarm!</string>-->
