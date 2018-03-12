@@ -19,13 +19,13 @@ import com.google.firebase.database.ValueEventListener;
 public class NotificationJobService extends JobService{
 
     SharedPreferences sharedPreferences;
-    boolean thiefIsEntered;
-    int verificationCode = -1;
+    int verificationCode;
     CountDownTimer countDownTimer;
 
     Context context;
 
     FirebaseUser user;
+    DatabaseReference mDatabase;
 
     @Override
     public boolean onStartJob(JobParameters job) {
@@ -49,18 +49,33 @@ public class NotificationJobService extends JobService{
         context = getApplicationContext();
 
         user = FirebaseAuth.getInstance().getCurrentUser();
-        DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference().child(user.getUid());
+        mDatabase = FirebaseDatabase.getInstance().getReference().child(user.getUid());
+        mDatabase.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                verificationCode = dataSnapshot.child("verification_code").getValue(Integer.class);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 boolean alarmIsSetDB = dataSnapshot.child("alarm_is_set").getValue(Boolean.class);
-                sharedPreferences.edit().putBoolean("alarmIsSet", alarmIsSetDB).apply();
-                thiefIsEntered = sharedPreferences.getBoolean("thiefIsEntered", false);
                 boolean thiefIsEnteredDB = dataSnapshot.child("thief_is_entered").getValue(Boolean.class);
                 int verificationCodeDB = dataSnapshot.child("verification_code").getValue(Integer.class);
+
+                System.out.println(alarmIsSetDB);
+                System.out.println(thiefIsEnteredDB);
+                System.out.println(verificationCodeDB);
+                System.out.println(verificationCode);
+
                 if (alarmIsSetDB) {
-                    if (thiefIsEnteredDB && !thiefIsEntered) {
+                    if (thiefIsEnteredDB && !sharedPreferences.getBoolean("thiefIsEntered", false)) {
                         setNotification("Alarm!", "A thief entered in your home");
                         sharedPreferences.edit().putBoolean("thiefIsEntered", true).apply();
                         sharedPreferences.edit().putString("colorSelected", "red").apply();
@@ -79,13 +94,11 @@ public class NotificationJobService extends JobService{
                     countDownTimer.start();
                     verificationCode = verificationCodeDB;
                 } else {
-                    if (verificationCodeDB != -1) {
-                        countDownTimer.cancel();
-                        setNotification("Attention!", " Someone has deactivated the alarm");
-                        sharedPreferences.edit().putBoolean("alarmIsSer", false).apply();
-                        sharedPreferences.edit().putString("colorSelected", "yellow").apply();
-                        sharedPreferences.edit().putString("textSelected", context.getResources().getString(R.string.alarm_deactivated)).apply();
-                    }
+                    countDownTimer.cancel();
+                    setNotification("Attention!", " Someone has deactivated the alarm");
+                    sharedPreferences.edit().putBoolean("alarmIsSet", false).apply();
+                    sharedPreferences.edit().putString("colorSelected", "yellow").apply();
+                    sharedPreferences.edit().putString("textSelected", context.getResources().getString(R.string.alarm_deactivated)).apply();
                 }
             }
 
@@ -93,8 +106,6 @@ public class NotificationJobService extends JobService{
             public void onCancelled(DatabaseError databaseError) {
 
             }
-
-
         });
 
         return true; // Answers the question: "Is there still work going on?"

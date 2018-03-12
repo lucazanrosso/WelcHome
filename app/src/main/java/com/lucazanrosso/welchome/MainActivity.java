@@ -153,7 +153,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
                 imageView.setColorFilter(ContextCompat.getColor(this, R.color.green));
                 break;
             case "yellow":
-                System.out.println("yellow");
                 imageView.setColorFilter(ContextCompat.getColor(this, R.color.yellow));
                 break;
             case "red":
