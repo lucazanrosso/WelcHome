@@ -65,11 +65,13 @@ public class NotificationJobService extends JobService{
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                sharedPreferences.edit().putBoolean("alarmJustSet", true).apply();
                 boolean alarmIsSetDB = dataSnapshot.child("alarm_is_set").getValue(Boolean.class);
                 boolean thiefIsEnteredDB = dataSnapshot.child("thief_is_entered").getValue(Boolean.class);
                 int verificationCodeDB = dataSnapshot.child("verification_code").getValue(Integer.class);
 
 //                System.out.println(alarmIsSetDB);
+//                System.out.println(sharedPreferences.getBoolean("alarmJustSet", false));
 //                System.out.println(thiefIsEnteredDB);
 //                System.out.println(verificationCodeDB);
 //                System.out.println(verificationCode);
@@ -93,9 +95,10 @@ public class NotificationJobService extends JobService{
                         sharedPreferences.edit().putBoolean("alarmIsSet", true).apply();
                     countDownTimer.start();
                     verificationCode = verificationCodeDB;
-                } else {
+                } else if (sharedPreferences.getBoolean("alarmJustSet", false)){
                     countDownTimer.cancel();
                     setNotification("Attention!", " Someone has deactivated the alarm");
+                    sharedPreferences.edit().putBoolean("alarmJustSet", false).apply();
                     sharedPreferences.edit().putBoolean("alarmIsSet", false).apply();
                     sharedPreferences.edit().putString("colorSelected", "yellow").apply();
                     sharedPreferences.edit().putString("textSelected", context.getResources().getString(R.string.alarm_deactivated)).apply();
