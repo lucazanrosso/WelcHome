@@ -90,10 +90,10 @@ public class NotificationJobService extends JobService{
                             sharedPreferences.edit().putBoolean("nodeMCUProblems", false).apply();
                         }
                     }
-                    if (!sharedPreferences.getBoolean("alarmIsSet", false)) {
-                        sharedPreferences.edit().putBoolean("alarmJustSet", true).apply();
+                    if (!sharedPreferences.getBoolean("alarmIsSet", false))
                         sharedPreferences.edit().putBoolean("alarmIsSet", true).apply();
-                    }
+                    if (!sharedPreferences.getBoolean("alarmJustSet", false))
+                        sharedPreferences.edit().putBoolean("alarmJustSet", true).apply();
                     countDownTimer.start();
                     verificationCode = verificationCodeDB;
                 } else if (sharedPreferences.getBoolean("alarmJustSet", false)){
