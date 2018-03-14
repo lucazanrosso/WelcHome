@@ -65,7 +65,6 @@ public class NotificationJobService extends JobService{
         mDatabase.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                sharedPreferences.edit().putBoolean("alarmJustSet", true).apply();
                 boolean alarmIsSetDB = dataSnapshot.child("alarm_is_set").getValue(Boolean.class);
                 boolean thiefIsEnteredDB = dataSnapshot.child("thief_is_entered").getValue(Boolean.class);
                 int verificationCodeDB = dataSnapshot.child("verification_code").getValue(Integer.class);
@@ -91,8 +90,10 @@ public class NotificationJobService extends JobService{
                             sharedPreferences.edit().putBoolean("nodeMCUProblems", false).apply();
                         }
                     }
-                    if (!sharedPreferences.getBoolean("alarmIsSet", false))
+                    if (!sharedPreferences.getBoolean("alarmIsSet", false)) {
+                        sharedPreferences.edit().putBoolean("alarmJustSet", true).apply();
                         sharedPreferences.edit().putBoolean("alarmIsSet", true).apply();
+                    }
                     countDownTimer.start();
                     verificationCode = verificationCodeDB;
                 } else if (sharedPreferences.getBoolean("alarmJustSet", false)){
